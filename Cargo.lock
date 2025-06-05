@@ -4141,8 +4141,8 @@ dependencies = [
 name = "hokulea-zkvm-verification"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "hokulea-proof",
- "kona-client",
  "kona-preimage",
  "kona-proof",
 ]

@@ -1,8 +1,8 @@
 //! security critical verification for zkVm integration
 
 extern crate alloc;
+use anyhow::Result;
 use core::fmt::Debug;
-use kona_client::single::FaultProofProgramError;
 use kona_preimage::CommsClient;
 use kona_proof::{BootInfo, FlushableCache};
 
@@ -23,7 +23,7 @@ pub async fn eigenda_witness_to_preloaded_provider<O>(
     oracle: Arc<O>,
     canoe_verifier: impl CanoeVerifier,
     mut witness: EigenDABlobWitnessData,
-) -> Result<PreloadedEigenDABlobProvider, FaultProofProgramError>
+) -> Result<PreloadedEigenDABlobProvider>
 where
     O: CommsClient + FlushableCache + Send + Sync + Debug,
 {
