@@ -24,3 +24,7 @@ alloy-evm.workspace = true
 # cfg-if is used by the `client_entry` macro in kona-client
 # but somehow machete doesn't see it as a dependency
 ignored = ["cfg-if"]
+
+[[bin]]
+name = "hokulea-client"
+path = "src/main.rs"
