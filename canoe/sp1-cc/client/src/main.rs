@@ -5,7 +5,6 @@ use alloy_primitives::Address;
 use alloy_sol_types::{sol_data::Bool, SolType, SolValue};
 use canoe_bindings::Journal;
 use canoe_provider::{CanoeInput, CertVerifierCall};
-use reth_chainspec::ChainSpec;
 use sp1_cc_client_executor::{io::EvmSketchInput, ClientExecutor, ContractInput};
 
 pub fn main() {
@@ -19,7 +18,12 @@ pub fn main() {
 
     // ensure all canoe_proof uses identical l1 chain id and l1 head block number
     assert!(!canoe_inputs.is_empty());
-    let l1_chain_id = canoe_inputs[0].l1_chain_id;
+
+    // Initialize the client executor with the state sketch.
+    // This step also validates all of the storage against state root provided by the host
+    let executor = ClientExecutor::eth(&state_sketch).unwrap();
+    let l1_chain_id = executor.chain_spec.chain().id();
+
     let l1_head_block_number = canoe_inputs[0].l1_head_block_number;
     let l1_head_block_hash = canoe_inputs[0].l1_head_block_hash;
     // require all canoe input share a common l1_chain_id
@@ -28,15 +32,6 @@ pub fn main() {
         assert!(canoe_input.l1_head_block_number == l1_head_block_number);
         assert!(canoe_input.l1_head_block_hash == l1_head_block_hash);
     }
-
-    // Initialize the client executor with the state sketch.
-    // This step also validates all of the storage against state root provided by the host
-    let executor = ClientExecutor::new(&state_sketch).unwrap();
-
-    let chain_sepc: ChainSpec = executor
-        .genesis
-        .try_into()
-        .expect("convert sp1 genesis into chain spec");
 
     // journals is a concatenation of serialized proof journal for each canoe input. The whole serialized vec is
     // reproduced during the verification procedures
@@ -71,7 +66,7 @@ pub fn main() {
             input: rlp_bytes.into(),
             blockhash: public_vals.anchorHash,
             output: returns,
-            l1ChainId: chain_sepc.chain.id(),
+            l1ChainId: l1_chain_id,
         };
         journals.extend(journal.abi_encode());
     }
