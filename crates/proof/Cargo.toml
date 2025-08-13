@@ -28,6 +28,7 @@ serde_json.workspace = true
 tracing.workspace = true
 cfg-if.workspace = true
 thiserror.workspace = true
+hex.workspace = true
 
 canoe-bindings = { workspace = true }
 
@@ -37,8 +38,9 @@ risc0-zkvm = { workspace = true, optional = true }
 
 # Sp1-CC
 sp1-lib = { workspace = true, features = ["verify"], optional = true}
+sp1-verifier = { workspace = true, optional = true }
 sha2 = { workspace = true, optional = true }
 
 [features]
 steel = ["canoe-steel-methods", "risc0-zkvm"]
-sp1-cc = ["sha2", "sp1-lib"]
+sp1-cc = ["sha2", "sp1-lib", "sp1-verifier"]

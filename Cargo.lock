@@ -4538,6 +4538,7 @@ dependencies = [
  "canoe-steel-methods",
  "cfg-if",
  "eigenda-cert",
+ "hex",
  "hokulea-eigenda",
  "kona-preimage",
  "kona-proof",
@@ -4548,6 +4549,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "sp1-lib",
+ "sp1-verifier",
  "thiserror 2.0.12",
  "tracing",
 ]
@@ -10365,6 +10367,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "sp1-verifier"
+version = "5.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76dd71dd696b258cbe6af9ef276dd22d1e8eedd0dab8184beb90facd414e327a"
+dependencies = [
+ "blake3",
+ "cfg-if",
+ "hex",
+ "lazy_static",
+ "sha2 0.10.9",
+ "substrate-bn-succinct",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "sp1-zkvm"
 version = "5.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10551,6 +10568,23 @@ dependencies = [
  "lazy_static",
  "rand 0.8.5",
  "rustc-hex",
+]
+
+[[package]]
+name = "substrate-bn-succinct"
+version = "0.6.0-v5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ba32f1b74728f92887c3ad17c42bf82998eb52c9091018f35294e9cd388b0c8"
+dependencies = [
+ "bytemuck",
+ "byteorder",
+ "cfg-if",
+ "crunchy",
+ "lazy_static",
+ "num-bigint 0.4.6",
+ "rand 0.8.5",
+ "rustc-hex",
+ "sp1-lib",
 ]
 
 [[package]]

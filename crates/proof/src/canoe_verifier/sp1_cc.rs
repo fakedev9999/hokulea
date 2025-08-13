@@ -2,7 +2,6 @@ use crate::canoe_verifier::errors::HokuleaCanoeVerificationError;
 use crate::canoe_verifier::CanoeVerifier;
 use crate::cert_validity::CertValidity;
 use alloc::vec::Vec;
-use alloy_primitives::B256;
 use eigenda_cert::AltDACommitment;
 
 use tracing::{info, warn};
@@ -10,7 +9,8 @@ use tracing::{info, warn};
 // ToDo(bx) how to automtically update it from ELF directly as oppose to hard code it
 // To get vKey of ELF
 // cargo prove vkey --elf target/elf-compilation/riscv32im-succinct-zkvm-elf/release/canoe-sp1-cc-client
-pub const VKEYHEXSTRING: &str = "0022d123b6ec9304510809638a79a88fc0e83616ca334504705ab74b2eb773d6";
+pub const VKEYHEXSTRING: &str =
+    "0x00a681ab4bcade572291e06a2bf094f8488a29777b2e4ec830ac3b011894bbd0";
 
 #[derive(Clone)]
 pub struct CanoeSp1CCVerifier {}
@@ -30,7 +30,7 @@ impl CanoeVerifier for CanoeSp1CCVerifier {
             if #[cfg(target_os = "zkvm")] {
                 use sha2::{Digest, Sha256};
                 use sp1_lib::verify::verify_sp1_proof;
-                use core::str::FromStr;
+                use sp1_verifier::decode_sp1_vkey_hash;
                 use crate::canoe_verifier::to_journals_bytes;
 
                 let journals_bytes = to_journals_bytes(cert_validity_pair);
@@ -42,11 +42,11 @@ impl CanoeVerifier for CanoeSp1CCVerifier {
                 }
                 // used within zkVM
                 let public_values_digest = Sha256::digest(journals_bytes);
-                let v_key_b256 = B256::from_str(VKEYHEXSTRING).map_err(|_| HokuleaCanoeVerificationError::InvalidVerificationKeyForSp1)?;
-                let v_key = b256_to_u32_array(v_key_b256);
+                let vk_digest = parse_vkey_hash_to_u32_array(VKEYHEXSTRING);
+
                 // the function will panic if the proof is incorrect
                 // https://github.com/succinctlabs/sp1/blob/011d2c64808301878e6f0375c3596b3e22e53949/crates/zkvm/lib/src/verify.rs#L3
-                verify_sp1_proof(&v_key, &public_values_digest.into());
+                verify_sp1_proof(&vk_digest, &public_values_digest.into());
             } else {
                 warn!("Skipping sp1CC proof verification in native mode outside of zkVM, because sp1 cannot take sp1-sdk as dependency which is needed for verification in the native mode");
             }
@@ -55,21 +55,21 @@ impl CanoeVerifier for CanoeSp1CCVerifier {
     }
 }
 
-pub fn b256_to_u32_array(b: B256) -> [u32; 8] {
-    let bytes: [u8; 32] = b.into();
+/// Parse vkey hash from cargo prove vkey output to [u32; 8] for verify_sp1_proof
+fn parse_vkey_hash_to_u32_array(vkey_hash_hex: &str) -> [u32; 8] {
+    // Remove 0x prefix if present
+    let hex_str = vkey_hash_hex.strip_prefix("0x").unwrap_or(vkey_hash_hex);
 
-    let mut out = [0u32; 8];
-    let mut i = 0;
-    while i < 8 {
-        let start = i * 4;
-        // sp1 zkvm is little endian
-        out[i] = u32::from_le_bytes([
-            bytes[start],
-            bytes[start + 1],
-            bytes[start + 2],
-            bytes[start + 3],
-        ]);
-        i += 1;
+    // Decode hex to bytes
+    let bytes = hex::decode(hex_str).expect("Invalid hex string");
+    assert_eq!(bytes.len(), 32, "VKey hash must be 32 bytes");
+
+    // Convert bytes to [u32; 8] in little-endian format (BabyBear field elements)
+    let mut result = [0u32; 8];
+    for (i, chunk) in bytes.chunks(4).enumerate() {
+        // Convert each 4-byte chunk to u32 in little-endian
+        result[i] = u32::from_le_bytes(chunk.try_into().unwrap());
     }
-    out
+
+    result
 }
