@@ -6,12 +6,6 @@ use eigenda_cert::AltDACommitment;
 
 use tracing::{info, warn};
 
-// ToDo(bx) how to automtically update it from ELF directly as oppose to hard code it
-// To get vKey of ELF
-// cargo prove vkey --elf target/elf-compilation/riscv32im-succinct-zkvm-elf/release/canoe-sp1-cc-client
-pub const VKEYHEXSTRING: &str =
-    "0x00a681ab4bcade572291e06a2bf094f8488a29777b2e4ec830ac3b011894bbd0";
-
 #[derive(Clone)]
 pub struct CanoeSp1CCVerifier {}
 
@@ -42,7 +36,8 @@ impl CanoeVerifier for CanoeSp1CCVerifier {
                 }
                 // used within zkVM
                 let public_values_digest = Sha256::digest(journals_bytes);
-                let vk_digest = parse_vkey_hash_to_u32_array(VKEYHEXSTRING);
+                // TODO(fakedev9999): get vkey from ELF, this hardcoded value is from elf built with sp1 v5.2.1.
+                let vk_digest: [u32; 8] = [1396757925, 1924634056, 1379667269, 1057574788, 1146178491, 1824078624, 1633187330, 412400592];
 
                 // the function will panic if the proof is incorrect
                 // https://github.com/succinctlabs/sp1/blob/011d2c64808301878e6f0375c3596b3e22e53949/crates/zkvm/lib/src/verify.rs#L3
